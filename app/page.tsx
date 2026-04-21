@@ -1,6 +1,6 @@
 // app/page.tsx — Public landing page
 import Link from 'next/link';
-import { Heart, Search, Shield, Star, Users, ArrowRight, CheckCircle } from 'lucide-react';
+import { Heart, Search, Shield, Star, ArrowRight, CheckCircle } from 'lucide-react';
 import Navbar from '@/components/ui/Navbar';
 
 export default function HomePage() {
