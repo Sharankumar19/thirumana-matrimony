@@ -187,13 +187,13 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map(({ name, img, text, location }:any) => (
+            {testimonials.map(({ name, avatar, text }) => (
               <div key={name} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <img src={img} alt={name} className="w-12 h-12 rounded-full object-cover ring-2 ring-rose-100" />
+                  <img src={avatar} alt={name} className="w-12 h-12 rounded-full object-cover ring-2 ring-rose-100" />
                   <div>
                     <p className="font-bold text-gray-900 text-sm">{name}</p>
-                    <p className="text-xs text-gray-500">{location}</p>
+                    {/* <p className="text-xs text-gray-500">{location}</p> */}
                   </div>
                   <div className="ml-auto flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
