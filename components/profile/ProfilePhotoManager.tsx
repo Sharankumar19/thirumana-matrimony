@@ -31,7 +31,6 @@ export default function ProfilePhotoManager() {
         },
       });
       const data = await res.json();
-      console.log(data,"profile");
 
       if (data.success) {
         setImages(data.data);
@@ -44,16 +43,17 @@ export default function ProfilePhotoManager() {
     }
   }
 
-  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  async function uploadFile(file: File): Promise<boolean> {
     try {
-      setUploading(true);
       const formData = new FormData();
       formData.append('profile_image', file);
 
       const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('No authentication token found. Please login again.');
+        return false;
+      }
+
       const res = await fetch('/api/profile/upload', {
         method: 'POST',
         headers: {
@@ -63,20 +63,58 @@ export default function ProfilePhotoManager() {
       });
 
       const data = await res.json();
-      console.log(data,"profile upload");
+      console.log(`Upload response for ${file.name}:`, { status: res.status, data });
+
+      if (!res.ok) {
+        const errorMsg = data.error || `Upload failed with status ${res.status}`;
+        console.error(`Upload error: ${errorMsg}`);
+        toast.error(errorMsg);
+        return false;
+      }
 
       if (data.success) {
-        setImages([...images, data.data]);
-        toast.success('Photo uploaded successfully!');
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
+        setImages((prev) => [...prev, data.data]);
+        return true;
       } else {
-        toast.error(data.error || 'Upload failed');
+        toast.error(data.error || `Failed to upload ${file.name}`);
+        return false;
       }
     } catch (err) {
-      console.error(err);
-      toast.error('Failed to upload photo');
+      console.error('Upload exception:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload photo';
+      toast.error(errorMessage);
+      return false;
+    }
+  }
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setUploading(true);
+      let successCount = 0;
+      const totalFiles = files.length;
+
+      // Upload files sequentially
+      for (let i = 0; i < files.length; i++) {
+        const success = await uploadFile(files[i]);
+        if (success) {
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(
+          successCount === totalFiles
+            ? `All ${totalFiles} photo(s) uploaded successfully!`
+            : `${successCount} of ${totalFiles} photo(s) uploaded`
+        );
+      }
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setUploading(false);
     }
@@ -159,15 +197,16 @@ export default function ProfilePhotoManager() {
           accept="image/jpeg,image/jpg,image/png,image/webp"
           onChange={handleFileSelect}
           disabled={uploading}
+          multiple
           className="hidden"
         />
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="w-full bg-rose-600 text-white py-3rounded-xl text-sm font-medium hover:bg-rose-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2 p-2"
+          className="w-full bg-rose-600 text-white py-3 rounded-xl text-sm font-medium hover:bg-rose-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2 p-2"
         >
           <Upload className="w-4 h-4" />
-          {uploading ? 'Uploading...' : 'Add New Photo'}
+          {uploading ? 'Uploading...' : 'Add Photos (Multiple)'}
         </button>
       </div>
 
@@ -233,7 +272,7 @@ export default function ProfilePhotoManager() {
       {/* Info */}
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-700">
-          💡 <strong>Tip:</strong> Upload multiple photos to increase your visibility. The first photo will be used as your primary profile picture.
+          💡 <strong>Tip:</strong> Upload multiple photos to increase your visibility. The first photo will be used as your primary profile picture. You can select multiple files at once!
         </p>
       </div>
     </div>

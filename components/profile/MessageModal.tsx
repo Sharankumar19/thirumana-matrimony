@@ -79,16 +79,26 @@ export default function MessageModal({ targetUser, currentUserId, onClose }: Mes
       });
 
       const data = await res.json();
+      console.log('Message response:', data, 'Status:', res.status);
+
+      if (!res.ok) {
+        toast.error(data.error || `Failed to send message (${res.status})`);
+        return;
+      }
 
       if (data.success) {
         setMessages([...messages, data.data]);
         setNewMessage('');
         toast.success('Message sent!');
+        // Auto-refresh messages after sending
+        setTimeout(() => {
+          fetchMessages();
+        }, 300);
       } else {
         toast.error(data.error || 'Failed to send message');
       }
     } catch (err) {
-      console.error(err);
+      console.error('Message send error:', err);
       toast.error('Something went wrong');
     } finally {
       setSending(false);

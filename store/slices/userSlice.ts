@@ -47,7 +47,7 @@ export const updateProfile = createAsyncThunk(
 );
 
 export const uploadProfileImage = createAsyncThunk(
-  'user/uploadProfileImage',
+  'user/profileImageUpload',
   async (formData: FormData, { rejectWithValue }) => {
     try {
       const res = await fetch(`${BASE_URL}/api/profile/upload`, {

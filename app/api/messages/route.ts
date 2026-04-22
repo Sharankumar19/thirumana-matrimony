@@ -8,7 +8,18 @@ import { authenticateRequest } from '@/utils/auth';
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const payload = authenticateRequest(request);
+    
+    let payload;
+    try {
+      payload = authenticateRequest(request);
+    } catch (authError) {
+      console.error('Authentication error:', authError);
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized. Please login.' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { receiver_id, content } = body;
 
@@ -22,6 +33,14 @@ export async function POST(request: NextRequest) {
     if (!content.trim()) {
       return NextResponse.json(
         { success: false, error: 'Message cannot be empty' },
+        { status: 400 }
+      );
+    }
+
+    // Check if sender is trying to send to themselves
+    if (parseInt(receiver_id) === payload.userId) {
+      return NextResponse.json(
+        { success: false, error: 'Cannot send message to yourself' },
         { status: 400 }
       );
     }
@@ -41,15 +60,19 @@ export async function POST(request: NextRequest) {
       content: content.trim(),
     });
 
-    return NextResponse.json({
-      success: true,
-      data: message,
-      message: 'Message sent successfully',
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: message,
+        message: 'Message sent successfully',
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Send message error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
     return NextResponse.json(
-      { success: false, error: 'Failed to send message' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
@@ -58,9 +81,19 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
-    const payload = authenticateRequest(request);
-    const { searchParams } = new URL(request.url);
+    
+    let payload;
+    try {
+      payload = authenticateRequest(request);
+    } catch (authError) {
+      console.error('Authentication error:', authError);
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized. Please login.' },
+        { status: 401 }
+      );
+    }
 
+    const { searchParams } = new URL(request.url);
     const other_user_id = searchParams.get('other_user_id');
 
     if (!other_user_id) {
@@ -96,8 +129,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get messages error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch messages';
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch messages' },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
