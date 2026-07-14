@@ -18,6 +18,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const redirectPath = getRedirectPath(searchParams);
   const showInterestMessage = searchParams.get('reason') === 'interest';
+  const showSessionExpired = searchParams.get('reason') === 'session_expired';
   const { loading, error, isAuthenticated } = useAppSelector((s) => s.auth);
 
   useEffect(() => {
@@ -50,6 +51,13 @@ export default function LoginForm() {
           <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl flex gap-3">
             <Heart className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm text-rose-800">{INTEREST_LOGIN_MESSAGE}</p>
+          </div>
+        )}
+
+        {showSessionExpired && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex gap-3">
+            <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-sm text-amber-800">Your session has expired. Please sign in again.</p>
           </div>
         )}
 
@@ -118,11 +126,6 @@ export default function LoginForm() {
               Create one
             </Link>
           </p>
-        </div>
-
-        {/* Demo credentials */}
-        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-          <p className="text-xs text-amber-700 font-medium text-center">Demo: demo@thirumanamatrimony.com / demo123</p>
         </div>
       </div>
     </div>

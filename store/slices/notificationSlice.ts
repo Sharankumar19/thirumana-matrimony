@@ -1,19 +1,13 @@
 // store/slices/notificationSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { Notification, NotificationState } from '@/types';
-
-function getToken() {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem('token') || '';
-}
+import { fetchWithAuth } from './authSlice';
 
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetch',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch('/api/notifications', {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await fetchWithAuth('/api/notifications', {}, dispatch);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return data;
@@ -25,16 +19,15 @@ export const fetchNotifications = createAsyncThunk(
 
 export const markNotificationRead = createAsyncThunk(
   'notifications/markRead',
-  async (notificationId: number, { rejectWithValue }) => {
+  async (notificationId: number, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch('/api/notifications', {
+      const res = await fetchWithAuth('/api/notifications', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify({ notification_id: notificationId }),
-      });
+      }, dispatch);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return { notificationId, unreadCount: data.unreadCount };
@@ -46,16 +39,15 @@ export const markNotificationRead = createAsyncThunk(
 
 export const markAllNotificationsRead = createAsyncThunk(
   'notifications/markAllRead',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch('/api/notifications', {
+      const res = await fetchWithAuth('/api/notifications', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify({ mark_all_read: true }),
-      });
+      }, dispatch);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return data.unreadCount;

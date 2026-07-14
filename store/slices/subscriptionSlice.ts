@@ -1,21 +1,15 @@
 // store/slices/subscriptionSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { SubscriptionState, PlanType } from '@/types';
+import { fetchWithAuth } from './authSlice';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 
-function getToken() {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem('token') || '';
-}
-
 export const fetchSubscription = createAsyncThunk(
   'subscription/fetch',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`${BASE_URL}/api/subscriptions`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await fetchWithAuth(`${BASE_URL}/api/subscriptions`, {}, dispatch);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return data.data;
@@ -27,16 +21,15 @@ export const fetchSubscription = createAsyncThunk(
 
 export const upgradePlan = createAsyncThunk(
   'subscription/upgrade',
-  async (plan_type: PlanType, { rejectWithValue }) => {
+  async (plan_type: PlanType, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`${BASE_URL}/api/subscriptions`, {
+      const res = await fetchWithAuth(`${BASE_URL}/api/subscriptions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify({ plan_type }),
-      });
+      }, dispatch);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return data.data;

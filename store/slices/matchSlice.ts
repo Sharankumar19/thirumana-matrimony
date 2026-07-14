@@ -1,19 +1,15 @@
 // store/slices/matchSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import type { MatchState, SearchFilters } from '@/types';
+import { fetchWithAuth } from './authSlice';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || '';
-
-function getToken() {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem('token') || '';
-}
 
 export const searchProfiles = createAsyncThunk(
   'matches/search',
   async (
     filters: SearchFilters & { append?: boolean },
-    { rejectWithValue }
+    { dispatch, rejectWithValue }
   ) => {
     try {
       const { append, ...searchFilters } = filters;
@@ -24,9 +20,7 @@ export const searchProfiles = createAsyncThunk(
         }
       });
 
-      const res = await fetch(`${BASE_URL}/api/search?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await fetchWithAuth(`${BASE_URL}/api/search?${params.toString()}`, {}, dispatch);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return { ...data, append: !!append };

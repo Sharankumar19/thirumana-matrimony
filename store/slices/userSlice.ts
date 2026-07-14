@@ -1,21 +1,15 @@
 // store/slices/userSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { UserState, UpdateProfileRequest } from '@/types';
+import { fetchWithAuth } from './authSlice';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || '';
 
-function getToken() {
-  if (typeof window === 'undefined') return '';
-  return localStorage.getItem('token') || '';
-}
-
 export const fetchProfile = createAsyncThunk(
   'user/fetchProfile',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`${BASE_URL}/api/profile`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res = await fetchWithAuth(`${BASE_URL}/api/profile`, {}, dispatch);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return data.data;
@@ -27,16 +21,15 @@ export const fetchProfile = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   'user/updateProfile',
-  async (profileData: UpdateProfileRequest, { rejectWithValue }) => {
+  async (profileData: UpdateProfileRequest, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`${BASE_URL}/api/profile`, {
+      const res = await fetchWithAuth(`${BASE_URL}/api/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify(profileData),
-      });
+      }, dispatch);
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.error);
       return data.data;
@@ -48,13 +41,12 @@ export const updateProfile = createAsyncThunk(
 
 export const uploadProfileImage = createAsyncThunk(
   'user/profileImageUpload',
-  async (formData: FormData, { rejectWithValue }) => {
+  async (formData: FormData, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`${BASE_URL}/api/profile/upload`, {
+      const res = await fetchWithAuth(`${BASE_URL}/api/profile/upload`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getToken()}` },
         body: formData,
-      });
+      }, dispatch);
       const data = await res.json();
       console.log(data,"=======>");
       if (!res.ok) return rejectWithValue(data.error);

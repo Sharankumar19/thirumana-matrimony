@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Heart, Search, User, Crown, LogOut, Menu, X, Bell, MessageCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
 import NotificationCenter from '@/components/ui/NotificationCenter';
@@ -11,10 +11,15 @@ import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   function handleLogout() {
     dispatch(logout());
@@ -22,7 +27,7 @@ export default function Navbar() {
     router.push('/');
   }
 
-  const navLinks = isAuthenticated
+  const navLinks = mounted && isAuthenticated
     ? [
         { href: '/search', label: 'Find Matches', icon: Search },
         { href: '/messages', label: 'Messages', icon: MessageCircle },
@@ -63,7 +68,12 @@ export default function Navbar() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
+            {!mounted ? (
+              <>
+                <Link href="/login" className="btn-ghost text-sm">Login</Link>
+                <Link href="/signup" className="btn-primary text-sm py-2">Get Started</Link>
+              </>
+            ) : isAuthenticated ? (
               <>
                 <NotificationCenter />
                 <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
@@ -110,7 +120,12 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-          {isAuthenticated ? (
+          {!mounted ? (
+            <div className="flex gap-3 pt-2">
+              <Link href="/login" onClick={() => setMenuOpen(false)} className="flex-1 btn-secondary text-center text-sm py-2.5">Login</Link>
+              <Link href="/signup" onClick={() => setMenuOpen(false)} className="flex-1 btn-primary text-center text-sm py-2.5">Sign Up</Link>
+            </div>
+          ) : isAuthenticated ? (
             <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all">
               <LogOut className="w-4 h-4" /> Logout
             </button>

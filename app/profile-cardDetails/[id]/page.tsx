@@ -470,7 +470,7 @@ export default function ViewProfilePage() {
               {!viewerIsPremium && <Lock className="w-4 h-4 text-amber-600" />}
             </div>
             
-            <p className="text-base font-bold text-gray-900 mt-2 truncate">
+            <p className={`text-base font-bold text-gray-900 mt-2 truncate ${!viewerIsPremium ? 'blur-[3px] select-none text-gray-400' : ''}`}>
               {user.email}
             </p>
             
@@ -495,7 +495,7 @@ export default function ViewProfilePage() {
               {!viewerIsPremium && <Lock className="w-4 h-4 text-amber-600" />}
             </div>
             
-            <p className="text-base font-bold text-gray-900 mt-2">
+            <p className={`text-base font-bold text-gray-900 mt-2 truncate ${!viewerIsPremium ? 'blur-[3px] select-none text-gray-400' : ''}`}>
               {user.phone || 'Not provided'}
             </p>
             

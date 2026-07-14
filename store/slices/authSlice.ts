@@ -135,3 +135,27 @@ const authSlice = createSlice({
 
 export const { logout, updateAuthUser, clearError } = authSlice.actions;
 export default authSlice.reducer;
+
+export async function fetchWithAuth(
+  url: string,
+  options: RequestInit = {},
+  dispatch: any
+): Promise<Response> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') || '' : '';
+  const headers = {
+    ...options.headers,
+    Authorization: `Bearer ${token}`,
+  };
+
+  const res = await fetch(url, { ...options, headers });
+
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      dispatch(logout());
+      // Redirect to login page to avoid half-logged-in states
+      window.location.href = `/login?reason=session_expired&redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
+  }
+
+  return res;
+}

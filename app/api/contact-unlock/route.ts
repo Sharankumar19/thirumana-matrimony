@@ -48,14 +48,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Free users see masked contact info
+    // Free users cannot unlock contact info
     return NextResponse.json({
-      success: true,
-      is_premium: false,
-      phone: targetUser.phone ? maskPhone(targetUser.phone) : null,
-      email: maskEmail(targetUser.email),
+      success: false,
+      error: 'Upgrade to Premium to view contact details',
       message: 'upgrade_required',
-    });
+    }, { status: 403 });
   } catch (error) {
     console.error('Contact unlock error:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch contact' }, { status: 500 });

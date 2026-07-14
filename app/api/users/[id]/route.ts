@@ -63,10 +63,8 @@ export async function GET(
 
     // 1. Enforce Masking for Contact Info
     if (!isOwnProfile && !viewerIsPremium) {
-      userData.email = maskEmail(userData.email);
-      if (userData.phone) {
-        userData.phone = maskPhone(userData.phone);
-      }
+      userData.email = 'Locked (Upgrade to Premium)';
+      userData.phone = 'Locked (Upgrade to Premium)';
     }
 
     // 2. Enforce User Privacy Toggles

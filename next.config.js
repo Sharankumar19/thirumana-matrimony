@@ -23,7 +23,7 @@ const securityHeaders = [
   },
   {
     key: 'Content-Security-Policy',
-    value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://images.pexels.com blob:; connect-src 'self' wss: ws: https://api.razorpay.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://api.razorpay.com; object-src 'none';", // Content security controls
+    value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://images.pexels.com blob: https://www.google-analytics.com https://analytics.google.com; connect-src 'self' wss: ws: https://api.razorpay.com https://www.google-analytics.com https://analytics.google.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://api.razorpay.com; object-src 'none';", // Content security controls
   }
 ];
 
