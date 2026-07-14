@@ -6,6 +6,7 @@ import { Heart, Search, User, Crown, LogOut, Menu, X, Bell, MessageCircle } from
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
+import NotificationCenter from '@/components/ui/NotificationCenter';
 import toast from 'react-hot-toast';
 
 export default function Navbar() {
@@ -64,10 +65,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                <button className="relative p-2 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full" />
-                </button>
+                <NotificationCenter />
                 <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
                   <div className="w-8 h-8 rounded-full bg-premium-gradient flex items-center justify-center text-white text-sm font-bold overflow-hidden">
                     {user?.profile_image ? (

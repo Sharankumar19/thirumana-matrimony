@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { InterestModel, UserModel } from '@/models';
 import { authenticateRequest } from '@/utils/auth';
+import { createInterestNotification } from '@/lib/notifications';
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,6 +60,23 @@ export async function POST(request: NextRequest) {
       receiver_id,
       status: 'pending',
     });
+
+    const sender = await UserModel.findByPk(payload.userId, {
+      attributes: ['id', 'name'],
+    });
+
+    if (sender) {
+      try {
+        await createInterestNotification(
+          receiver_id,
+          sender.name,
+          payload.userId,
+          interest.id
+        );
+      } catch (notifError) {
+        console.error('Failed to create notification:', notifError);
+      }
+    }
 
     return NextResponse.json({
       success: true,

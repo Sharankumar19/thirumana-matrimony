@@ -36,12 +36,43 @@ export async function PUT(request: NextRequest) {
     const payload = authenticateRequest(request);
     const body = await request.json();
 
-    const allowedFields = ['name', 'phone', 'age', 'location', 'job', 'salary', 'bio', 'religion_id', 'caste_id', 'subcaste_id'];
+    const allowedFields = [
+      'name', 'phone', 'age', 'location', 'job', 'salary', 'bio', 'religion_id', 'caste_id', 'subcaste_id',
+      'gender',
+      // Basic info
+      'date_of_birth', 'marital_status', 'mother_tongue', 'community', 'height', 'weight', 'blood_group', 
+      'diet_preference', 'smoking_habit', 'drinking_habit', 'physical_status', 'current_city', 'state', 'country',
+      // Family details
+      'father_name', 'father_occupation', 'mother_name', 'mother_occupation', 'brothers_count', 'brothers_status', 
+      'sisters_count', 'sisters_status', 'family_type', 'family_values', 'family_financial_status', 'family_native_place',
+      // Education & Career
+      'highest_qualification', 'college_university', 'field_of_study', 'company_name', 'job_designation', 
+      'employment_type', 'annual_income', 'work_location', 'years_of_experience',
+      // Hobbies
+      'hobbies',
+      // Partner Preferences
+      'partner_age_min', 'partner_age_max', 'partner_height_min', 'partner_height_max', 'partner_marital_status', 
+      'partner_religion', 'partner_caste', 'partner_education', 'partner_occupation', 'partner_income', 
+      'partner_location', 'partner_diet', 'partner_smoking', 'partner_drinking',
+      // Privacy Settings
+      'privacy_settings'
+    ];
     const updateData: Record<string, unknown> = {};
+
+    const intFields = [
+      'age', 'religion_id', 'caste_id', 'subcaste_id', 
+      'brothers_count', 'sisters_count', 'years_of_experience', 
+      'partner_age_min', 'partner_age_max'
+    ];
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        updateData[field] = body[field];
+        if (intFields.includes(field)) {
+          const val = parseInt(body[field]);
+          updateData[field] = isNaN(val) ? null : val;
+        } else {
+          updateData[field] = body[field] === '' ? null : body[field];
+        }
       }
     }
 

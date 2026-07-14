@@ -4,6 +4,7 @@ import authReducer from './slices/authSlice';
 import userReducer from './slices/userSlice';
 import matchReducer from './slices/matchSlice';
 import subscriptionReducer from './slices/subscriptionSlice';
+import notificationReducer from './slices/notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     user: userReducer,
     matches: matchReducer,
     subscription: subscriptionReducer,
+    notifications: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

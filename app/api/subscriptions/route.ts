@@ -33,13 +33,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { plan_type } = body as { plan_type: PlanType };
 
-    const validPlans: PlanType[] = ['free', 'standard', 'pro', 'elite'];
+    const validPlans: PlanType[] = ['free', 'premium', 'standard', 'pro', 'elite'];
     if (!validPlans.includes(plan_type)) {
       return NextResponse.json({ success: false, error: 'Invalid plan type' }, { status: 400 });
     }
 
     const contact_limit = PLAN_LIMITS[plan_type];
-    const expiry_date = getPlanExpiryDate(30);
+    const expiry_date = getPlanExpiryDate(plan_type === 'free' ? 36500 : 30); // free = 100 years, paid = 30 days
 
     const [subscription, created] = await SubscriptionModel.findOrCreate({
       where: { user_id: payload.userId },

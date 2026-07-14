@@ -1,5 +1,6 @@
 // app/page.tsx — Public landing page
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, Search, Shield, Star, ArrowRight, CheckCircle } from 'lucide-react';
 import Navbar from '@/components/ui/Navbar';
 
@@ -118,10 +119,13 @@ export default function HomePage() {
             <div className="relative hidden lg:block">
               <div className="relative w-full aspect-square max-w-lg mx-auto">
                 <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl">
-                  <img
+                  <Image
                     src="https://images.pexels.com/photos/3171837/pexels-photo-3171837.jpeg?auto=compress&cs=tinysrgb&w=800"
                     alt="Happy couple"
-                    className="w-full h-full object-cover"
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 500px"
+                    className="object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-rose-900/30 to-transparent" />
                 </div>
@@ -132,7 +136,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">New Match Today</p>
-                    <p className="text-sm font-bold text-gray-900">Swetha & Sharan</p>
+                    <p className="text-sm font-bold text-gray-900">zara & karthi</p>
                   </div>
                 </div>
 
@@ -190,7 +194,9 @@ export default function HomePage() {
             {testimonials.map(({ name, avatar, text }) => (
               <div key={name} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <img src={avatar} alt={name} className="w-12 h-12 rounded-full object-cover ring-2 ring-rose-100" />
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center text-white font-extrabold text-lg ring-2 ring-rose-100 flex-shrink-0">
+                    {avatar}
+                  </div>
                   <div>
                     <p className="font-bold text-gray-900 text-sm">{name}</p>
                     {/* <p className="text-xs text-gray-500">{location}</p> */}

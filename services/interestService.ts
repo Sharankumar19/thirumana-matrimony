@@ -2,6 +2,8 @@
 export async function sendInterest(receiverId: number): Promise<boolean> {
   try {
     const token = localStorage.getItem('token');
+    if (!token) return false;
+
     const res = await fetch('/api/interests', {
       method: 'POST',
       headers: {

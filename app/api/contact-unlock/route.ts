@@ -1,8 +1,9 @@
-// app/api/contact-unlock/route.ts — Unlock contact phone number
+// app/api/contact-unlock/route.ts — Return full or masked contact based on subscription
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { UserModel, SubscriptionModel, ContactViewModel } from '@/models';
+import { UserModel, SubscriptionModel } from '@/models';
 import { authenticateRequest } from '@/utils/auth';
+import { isPremiumPlan, maskEmail, maskPhone } from '@/utils/helpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,81 +17,47 @@ export async function POST(request: NextRequest) {
     }
 
     if (target_user_id === payload.userId) {
-      return NextResponse.json({ success: false, error: 'Cannot unlock your own contact' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Cannot view your own contact' }, { status: 400 });
     }
 
-    // Check if already viewed
-    const existingView = await ContactViewModel.findOne({
-      where: { viewer_id: payload.userId, viewed_user_id: target_user_id },
-    });
-
-    if (existingView) {
-      // Already unlocked — just return the phone
-      const targetUser = await UserModel.findByPk(target_user_id, {
-        attributes: ['id', 'name', 'phone'],
-      });
-      return NextResponse.json({
-        success: true,
-        phone: targetUser?.phone || 'Not available',
-        message: 'Contact already unlocked',
-        contacts_remaining: null,
-      });
-    }
-
-    // Check subscription
+    // Fetch requester's subscription
     const subscription = await SubscriptionModel.findOne({
       where: { user_id: payload.userId },
     });
 
-    if (!subscription) {
-      return NextResponse.json({ success: false, error: 'No subscription found' }, { status: 404 });
-    }
+    const planType = subscription?.plan_type || 'free';
+    const hasPremium = isPremiumPlan(planType);
 
-    if (subscription.plan_type === 'free' || subscription.contacts_used >= subscription.contact_limit) {
-      return NextResponse.json({
-        success: false,
-        error: 'upgrade_required',
-        message: 'Upgrade your plan to view contact details',
-      }, { status: 403 });
-    }
-
-    // Check expiry
-    if (new Date(subscription.expiry_date) < new Date()) {
-      return NextResponse.json({
-        success: false,
-        error: 'subscription_expired',
-        message: 'Your subscription has expired. Please renew.',
-      }, { status: 403 });
-    }
-
-    // Unlock contact
+    // Fetch the target user's contact details
     const targetUser = await UserModel.findByPk(target_user_id, {
-      attributes: ['id', 'name', 'phone'],
+      attributes: ['id', 'name', 'phone', 'email'],
     });
 
     if (!targetUser) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
-    // Record the view
-    await ContactViewModel.create({
-      viewer_id: payload.userId,
-      viewed_user_id: target_user_id,
-    });
+    if (hasPremium) {
+      // Premium users see full contact info
+      return NextResponse.json({
+        success: true,
+        is_premium: true,
+        phone: targetUser.phone || 'Not available',
+        email: targetUser.email,
+        message: 'Contact details unlocked',
+      });
+    }
 
-    // Increment contacts_used
-    await subscription.update({ contacts_used: subscription.contacts_used + 1 });
-
-    const contacts_remaining = subscription.contact_limit - (subscription.contacts_used + 1);
-
+    // Free users see masked contact info
     return NextResponse.json({
       success: true,
-      phone: targetUser.phone || 'Not available',
-      message: 'Contact unlocked successfully',
-      contacts_remaining,
+      is_premium: false,
+      phone: targetUser.phone ? maskPhone(targetUser.phone) : null,
+      email: maskEmail(targetUser.email),
+      message: 'upgrade_required',
     });
   } catch (error) {
     console.error('Contact unlock error:', error);
-    return NextResponse.json({ success: false, error: 'Failed to unlock contact' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Failed to fetch contact' }, { status: 500 });
   }
 }

@@ -1,41 +1,63 @@
 'use client';
 // app/(dashboard)/search/page.tsx
-import { useEffect } from 'react';
-import { Users, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useEffect, useRef, useCallback } from 'react';
+import { Users, Loader2 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { searchProfiles, setFilters, setPage } from '@/store/slices/matchSlice';
+import { searchProfiles, setFilters } from '@/store/slices/matchSlice';
 import { sendInterest } from '@/services/interestService';
 import SearchFilters from '@/components/search/SearchFilters';
 import ProfileCard from '@/components/profile/ProfileCard';
 import type { SearchFilters as FiltersType, User } from '@/types';
 import { useRouter } from 'next/navigation';
 
+const PAGE_SIZE = 15;
+
 export default function SearchPage() {
   const dispatch = useAppDispatch();
-  const { results, loading, total, page, totalPages, filters } = useAppSelector((s) => s.matches);
+  const { results, loading, loadingMore, total, page, hasMore, filters } = useAppSelector((s) => s.matches);
   const router = useRouter();
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    dispatch(searchProfiles({ page: 1, limit: 12 }));
+    dispatch(searchProfiles({ page: 1, limit: PAGE_SIZE }));
   }, [dispatch]);
+
+  const loadMore = useCallback(() => {
+    if (!loading && !loadingMore && hasMore && results.length > 0) {
+      dispatch(searchProfiles({ ...filters, page: page + 1, limit: PAGE_SIZE, append: true }));
+    }
+  }, [dispatch, filters, page, hasMore, loading, loadingMore, results.length]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   function handleSearch(newFilters: FiltersType) {
     dispatch(setFilters(newFilters));
-    dispatch(searchProfiles({ ...newFilters, page: 1, limit: 12 }));
+    dispatch(searchProfiles({ ...newFilters, page: 1, limit: PAGE_SIZE }));
   }
 
-  function handlePageChange(newPage: number) {
-    dispatch(setPage(newPage));
-    dispatch(searchProfiles({ ...filters, page: newPage, limit: 12 }));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  async function handleInterest(userId: number): Promise<boolean> {
+    return sendInterest(userId);
   }
 
-  async function handleInterest(userId: number) {
-    await sendInterest(userId);
-  }
+  const isInitialLoad = loading && results.length === 0;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="section-title">Find Your Match</h1>
         <p className="text-gray-500 text-sm">
@@ -43,11 +65,9 @@ export default function SearchPage() {
         </p>
       </div>
 
-      {/* Filters */}
-      <SearchFilters onSearch={handleSearch} loading={loading} />
+      <SearchFilters onSearch={handleSearch} loading={loading && !loadingMore} />
 
-      {/* Results */}
-      {loading ? (
+      {isInitialLoad ? (
         <div className="flex flex-col items-center justify-center py-24 text-gray-400 gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-rose-400" />
           <p className="text-sm">Finding matches for you...</p>
@@ -64,47 +84,26 @@ export default function SearchPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {results.map((user: User) => (
-              <ProfileCard key={user.id} user={user} onInterest={handleInterest}  onClick={() => router.push(`/profile-cardDetails/${user.id}`)}  />
+              <ProfileCard
+                key={user.id}
+                user={user}
+                onInterest={handleInterest}
+                onClick={() => router.push(`/profile-cardDetails/${user.id}`)}
+              />
             ))}
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-4">
-              <button
-                onClick={() => handlePageChange(page - 1)}
-                disabled={page === 1}
-                className="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:border-rose-400 hover:text-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-
-              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                const p = i + 1;
-                return (
-                  <button
-                    key={p}
-                    onClick={() => handlePageChange(p)}
-                    className={`w-10 h-10 rounded-xl text-sm font-medium transition-all
-                      ${page === p
-                        ? 'bg-rose-600 text-white shadow-button'
-                        : 'border border-gray-200 text-gray-600 hover:border-rose-400 hover:text-rose-600'
-                      }`}
-                  >
-                    {p}
-                  </button>
-                );
-              })}
-
-              <button
-                onClick={() => handlePageChange(page + 1)}
-                disabled={page === totalPages}
-                className="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:border-rose-400 hover:text-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          <div ref={sentinelRef} className="flex justify-center py-8">
+            {loadingMore && (
+              <div className="flex items-center gap-2 text-gray-400">
+                <Loader2 className="w-5 h-5 animate-spin text-rose-400" />
+                <span className="text-sm">Loading more profiles...</span>
+              </div>
+            )}
+            {!hasMore && results.length > 0 && (
+              <p className="text-sm text-gray-400">You&apos;ve seen all {total} profiles</p>
+            )}
+          </div>
         </>
       )}
     </div>

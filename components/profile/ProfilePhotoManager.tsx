@@ -1,8 +1,8 @@
-'use client';
+"use client";
 // components/profile/ProfilePhotoManager.tsx
-import { useState, useEffect, useRef } from 'react';
-import { Upload, Trash2, CheckCircle, Loader } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useState, useEffect, useRef } from "react";
+import { Upload, Trash2, CheckCircle, Loader } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface ProfileImage {
   id: number;
@@ -24,8 +24,8 @@ export default function ProfilePhotoManager() {
   async function fetchImages() {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/profile/upload', {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/profile/upload", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -37,7 +37,7 @@ export default function ProfilePhotoManager() {
       }
     } catch (err) {
       console.error(err);
-      toast.error('Failed to load photos');
+      toast.error("Failed to load photos");
     } finally {
       setLoading(false);
     }
@@ -46,16 +46,16 @@ export default function ProfilePhotoManager() {
   async function uploadFile(file: File): Promise<boolean> {
     try {
       const formData = new FormData();
-      formData.append('profile_image', file);
+      formData.append("profile_image", file);
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        toast.error('No authentication token found. Please login again.');
+        toast.error("No authentication token found. Please login again.");
         return false;
       }
 
-      const res = await fetch('/api/profile/upload', {
-        method: 'POST',
+      const res = await fetch("/api/profile/upload", {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -63,10 +63,14 @@ export default function ProfilePhotoManager() {
       });
 
       const data = await res.json();
-      console.log(`Upload response for ${file.name}:`, { status: res.status, data });
+      console.log(`Upload response for ${file.name}:`, {
+        status: res.status,
+        data,
+      });
 
       if (!res.ok) {
-        const errorMsg = data.error || `Upload failed with status ${res.status}`;
+        const errorMsg =
+          data.error || `Upload failed with status ${res.status}`;
         console.error(`Upload error: ${errorMsg}`);
         toast.error(errorMsg);
         return false;
@@ -80,8 +84,9 @@ export default function ProfilePhotoManager() {
         return false;
       }
     } catch (err) {
-      console.error('Upload exception:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to upload photo';
+      console.error("Upload exception:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to upload photo";
       toast.error(errorMessage);
       return false;
     }
@@ -108,12 +113,12 @@ export default function ProfilePhotoManager() {
         toast.success(
           successCount === totalFiles
             ? `All ${totalFiles} photo(s) uploaded successfully!`
-            : `${successCount} of ${totalFiles} photo(s) uploaded`
+            : `${successCount} of ${totalFiles} photo(s) uploaded`,
         );
       }
 
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     } finally {
       setUploading(false);
@@ -121,13 +126,16 @@ export default function ProfilePhotoManager() {
   }
 
   async function handleDelete(imageId: number) {
-    if (!confirm('Are you sure you want to delete this photo?')) return;
+    if (!confirm("Are you sure you want to delete this photo?")) {
+      toast.success("Photo deletion cancelled");
+      return;
+    }
 
     try {
       setDeleting(imageId);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const res = await fetch(`/api/profile/images/${imageId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -137,13 +145,13 @@ export default function ProfilePhotoManager() {
 
       if (data.success) {
         setImages(images.filter((img) => img.id !== imageId));
-        toast.success('Photo deleted successfully');
+        toast.success("Photo deleted successfully");
       } else {
-        toast.error(data.error || 'Failed to delete');
+        toast.error(data.error || "Failed to delete");
       }
     } catch (err) {
       console.error(err);
-      toast.error('Failed to delete photo');
+      toast.error("Failed to delete photo");
     } finally {
       setDeleting(null);
     }
@@ -151,9 +159,9 @@ export default function ProfilePhotoManager() {
 
   async function handleSetPrimary(imageId: number) {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const res = await fetch(`/api/profile/images/${imageId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -167,15 +175,15 @@ export default function ProfilePhotoManager() {
           images.map((img) => ({
             ...img,
             is_primary: img.id === imageId,
-          }))
+          })),
         );
-        toast.success('Photo set as primary');
+        toast.success("Photo set as primary");
       } else {
-        toast.error(data.error || 'Failed to update');
+        toast.error(data.error || "Failed to update");
       }
     } catch (err) {
       console.error(err);
-      toast.error('Failed to update photo');
+      toast.error("Failed to update photo");
     }
   }
 
@@ -206,17 +214,21 @@ export default function ProfilePhotoManager() {
           className="w-full bg-rose-600 text-white py-3 rounded-xl text-sm font-medium hover:bg-rose-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2 p-2"
         >
           <Upload className="w-4 h-4" />
-          {uploading ? 'Uploading...' : 'Add Photos (Multiple)'}
+          {uploading ? "Uploading..." : "Add Photos (Multiple)"}
         </button>
       </div>
 
       {/* Photos Grid */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Photos</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Your Photos
+        </h3>
 
         {images.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
-            <p className="text-gray-500">No photos yet. Upload your first photo!</p>
+            <p className="text-gray-500">
+              No photos yet. Upload your first photo!
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -272,7 +284,9 @@ export default function ProfilePhotoManager() {
       {/* Info */}
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-700">
-          💡 <strong>Tip:</strong> Upload multiple photos to increase your visibility. The first photo will be used as your primary profile picture. You can select multiple files at once!
+          💡 <strong>Tip:</strong> Upload multiple photos to increase your
+          visibility. The first photo will be used as your primary profile
+          picture. You can select multiple files at once!
         </p>
       </div>
     </div>

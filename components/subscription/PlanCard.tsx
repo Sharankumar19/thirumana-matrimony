@@ -1,5 +1,5 @@
 'use client';
-// components/subscription/PlanCard.tsx
+
 import { Check, Crown, Zap } from 'lucide-react';
 import type { PlanDetails, PlanType } from '@/types';
 
@@ -12,6 +12,7 @@ interface PlanCardProps {
 
 const planIcons: Record<PlanType, React.ReactNode> = {
   free: <span className="text-2xl">🆓</span>,
+  premium: <Crown className="w-6 h-6 text-amber-500 fill-amber-500" />,
   standard: <Zap className="w-6 h-6" />,
   pro: <Crown className="w-6 h-6" />,
   elite: <span className="text-2xl">💎</span>,
@@ -19,16 +20,18 @@ const planIcons: Record<PlanType, React.ReactNode> = {
 
 const planColors: Record<PlanType, string> = {
   free: 'border-gray-200 bg-white',
+  premium: 'border-amber-300 bg-amber-50/30',
   standard: 'border-blue-200 bg-blue-50/30',
   pro: 'border-rose-300 bg-rose-50/30',
-  elite: 'border-amber-300 bg-amber-50/30',
+  elite: 'border-purple-300 bg-purple-50/30',
 };
 
 const planButtonColors: Record<PlanType, string> = {
   free: 'bg-gray-200 text-gray-600 cursor-not-allowed',
+  premium: 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white',
   standard: 'bg-blue-600 hover:bg-blue-700 text-white',
   pro: 'bg-premium-gradient text-white shadow-button hover:shadow-lg',
-  elite: 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white',
+  elite: 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white',
 };
 
 export default function PlanCard({ plan, currentPlan, onSelect, loading }: PlanCardProps) {

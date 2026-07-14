@@ -1,25 +1,40 @@
 'use client';
 // components/profile/ProfileCard.tsx
 import { useState } from 'react';
-import { MapPin, Briefcase, Heart, Phone, Star, Lock, Cake, DollarSign } from 'lucide-react';
+import { MapPin, Briefcase, Heart, Star, Cake, DollarSign, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAppSelector } from '@/store/hooks';
 import type { User } from '@/types';
-import ContactModal from './ContactModal';
+import LoginPromptModal from '@/components/ui/LoginPromptModal';
 
 interface ProfileCardProps {
   user: User;
-  onInterest?: (userId: number) => void;
-    onClick?: () => void;
+  onInterest?: (userId: number) => Promise<boolean>;
+  onClick?: () => void;
 }
 
 export default function ProfileCard({ user, onInterest, onClick }: ProfileCardProps) {
-  const [showContactModal, setShowContactModal] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [sending, setSending] = useState(false);
+  const { isAuthenticated } = useAppSelector((s) => s.auth);
 
-  function handleInterest() {
-    setLiked(true);
-    onInterest?.(user.id);
-    toast.success('Interest sent!');
+  async function handleInterest() {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    setSending(true);
+    const success = await onInterest?.(user.id);
+    setSending(false);
+
+    if (success) {
+      setLiked(true);
+      toast.success('Interest sent!');
+    } else {
+      toast.error('Failed to send interest. You may have already expressed interest.');
+    }
   }
 
   const initials = user.name
@@ -127,28 +142,32 @@ export default function ProfileCard({ user, onInterest, onClick }: ProfileCardPr
                 e.stopPropagation();
                 handleInterest();
               }}
-              className="flex-1 bg-rose-600 text-white py-2 rounded-lg text-xs font-medium hover:bg-rose-700 transition-colors flex items-center justify-center gap-1"
+              disabled={sending || liked}
+              className="flex-1 bg-rose-600 text-white py-2 rounded-lg text-xs font-medium hover:bg-rose-700 transition-colors flex items-center justify-center gap-1 disabled:opacity-60"
             >
               <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-current' : ''}`} />
-              {liked ? 'Liked' : 'Interest'}
+              {sending ? 'Sending...' : liked ? 'Liked' : 'Interest'}
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setShowContactModal(true);
+                // Navigate to profile detail for contact viewing (premium check happens there)
+                onClick?.();
               }}
               className="flex-1 bg-gray-900 text-white py-2 rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors flex items-center justify-center gap-1"
             >
-              <Phone className="w-3.5 h-3.5" />
+              <Lock className="w-3.5 h-3.5" />
               Contact
             </button>
           </div>
         </div>
       </div>
 
-      {/* Contact Modal */}
-      {showContactModal && (
-        <ContactModal targetUser={user} onClose={() => setShowContactModal(false)} />
+      {showLoginPrompt && (
+        <LoginPromptModal
+          redirectPath={`/profile-cardDetails/${user.id}`}
+          onClose={() => setShowLoginPrompt(false)}
+        />
       )}
     </>
   );

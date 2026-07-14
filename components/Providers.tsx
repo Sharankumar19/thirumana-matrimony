@@ -3,12 +3,14 @@
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { Toaster } from 'react-hot-toast';
+import SocketProvider from '@/components/SocketProvider';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
-      {children}
-      <Toaster
+      <SocketProvider>
+        {children}
+        <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
@@ -23,6 +25,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
         }}
       />
+      </SocketProvider>
     </Provider>
   );
 }
