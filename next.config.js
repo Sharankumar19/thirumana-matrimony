@@ -39,9 +39,9 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['sequelize', 'mysql2', 'bcryptjs'],
-  },
+  // experimental: {
+  //   serverComponentsExternalPackages: ['sequelize', 'mysql2', 'bcryptjs'],
+  // },
   async headers() {
     return [
       {
