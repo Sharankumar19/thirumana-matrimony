@@ -28,6 +28,7 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  serverExternalPackages: ['sequelize', 'mysql2', 'bcryptjs'],
   images: {
     domains: ['localhost', 'images.pexels.com'],
     remotePatterns: [
@@ -38,9 +39,6 @@ const nextConfig = {
         pathname: '/uploads/**',
       },
     ],
-  },
-  experimental: {
-    serverComponentsExternalPackages: ['sequelize', 'mysql2', 'bcryptjs'],
   },
   async headers() {
     return [
