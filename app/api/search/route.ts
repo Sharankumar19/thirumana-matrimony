@@ -5,6 +5,8 @@ import { connectDB } from '@/lib/db';
 import { UserModel, Religion, Caste, SubCaste, SubscriptionModel } from '@/models';
 import { authenticateRequest } from '@/utils/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();

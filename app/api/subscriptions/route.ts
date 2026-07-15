@@ -6,6 +6,8 @@ import { authenticateRequest } from '@/utils/auth';
 import { PLAN_LIMITS, getPlanExpiryDate } from '@/utils/helpers';
 import type { PlanType } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
