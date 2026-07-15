@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, Heart, Check, Loader2 } from 'lucide-react';
+import { Bell, Heart, Check, Loader2, MessageCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -15,6 +15,9 @@ import type { Notification } from '@/types';
 function NotificationIcon({ type }: { type: Notification['type'] }) {
   if (type === 'interest' || type === 'interest_accepted') {
     return <Heart className="w-4 h-4 text-rose-500" />;
+  }
+  if (type === 'message') {
+    return <MessageCircle className="w-4 h-4 text-pink-600" />;
   }
   return <Bell className="w-4 h-4 text-blue-500" />;
 }

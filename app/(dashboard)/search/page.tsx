@@ -57,11 +57,10 @@ export default function SearchPage() {
   const isInitialLoad = loading && results.length === 0;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="section-title">Find Your Match</h1>
-        <p className="text-gray-500 text-sm">
-          {total > 0 ? `${total} profiles found` : 'Browse profiles below'}
+    <div className="space-y-4 flex-1 flex flex-col">
+      <div className="flex items-center justify-between px-1">
+        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+          {total > 0 ? `${total} Profiles Found` : 'Browse Profiles'}
         </p>
       </div>
 

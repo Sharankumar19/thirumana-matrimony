@@ -47,7 +47,7 @@ export default function PremiumUpgradeModal({ onClose }: PremiumUpgradeModalProp
             <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-900 leading-relaxed">
               This contact information is available only for <strong>Premium members</strong>. Upgrade to Premium for just{' '}
-              <strong>₹199</strong> to unlock full contact details and enjoy exclusive benefits.
+              <strong>₹2999</strong> to unlock full contact details and enjoy exclusive benefits.
             </p>
           </div>
 
@@ -69,7 +69,7 @@ export default function PremiumUpgradeModal({ onClose }: PremiumUpgradeModalProp
 
           {/* Price badge */}
           <div className="text-center py-2">
-            <span className="text-4xl font-extrabold text-gray-900">₹199</span>
+            <span className="text-4xl font-extrabold text-gray-900">₹2999</span>
             <span className="text-gray-500 text-sm ml-1">/month</span>
           </div>
 
@@ -80,7 +80,7 @@ export default function PremiumUpgradeModal({ onClose }: PremiumUpgradeModalProp
               className="w-full py-3.5 rounded-xl font-bold text-white text-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg hover:shadow-orange-300 flex items-center justify-center gap-2"
             >
               <Crown className="w-4 h-4" />
-              Upgrade to Premium (₹199)
+              Upgrade to Premium (₹2999)
             </button>
             <button
               onClick={onClose}

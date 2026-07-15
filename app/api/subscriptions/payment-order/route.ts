@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const payload = authenticateRequest(request);
     const userId = payload.userId;
 
-    const amount = 19900; // ₹199 in paise
+    const amount = 299900; // ₹199 in paise
     const currency = 'INR';
 
     const keyId = process.env.RAZORPAY_KEY_ID;

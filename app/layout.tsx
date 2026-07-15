@@ -4,6 +4,7 @@ import { Playfair_Display, DM_Sans } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import Providers from '@/components/Providers';
+import MobileAppShell from '@/components/ui/MobileAppShell';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -31,7 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <MobileAppShell>{children}</MobileAppShell>
+        </Providers>
         {gaId && (
           <>
             <Script

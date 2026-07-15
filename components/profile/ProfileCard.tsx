@@ -55,14 +55,14 @@ export default function ProfileCard({ user, onInterest, onClick }: ProfileCardPr
 
   return (
     <>
-      <div className="profile-card card overflow-hidden group cursor-pointer" onClick={onClick}>
+      <div className="profile-card card overflow-hidden group cursor-pointer border border-gray-100/80 rounded-3xl" onClick={onClick}>
         {/* Image / Avatar */}
-        <div className="relative h-56 overflow-hidden">
+        <div className="relative h-64 overflow-hidden">
           {user.profile_image ? (
             <img
               src={user.profile_image}
               alt={user.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
             />
           ) : (
             <div className={`w-full h-full bg-gradient-to-br ${avatarColors[colorIdx]} flex items-center justify-center`}>
@@ -71,93 +71,88 @@ export default function ProfileCard({ user, onInterest, onClick }: ProfileCardPr
           )}
           <div className="absolute inset-0 img-overlay" />
 
-          {/* Plan badge */}
+          {/* Premium Plan Badge */}
           {user.subscription?.plan_type && user.subscription.plan_type !== 'free' && (
-            <div className="absolute top-3 right-3">
-              <span className="badge bg-amber-400/90 text-amber-900 text-xs font-bold px-2 py-1">
-                <Star className="w-3 h-3 inline mr-0.5" />
+            <div className="absolute top-3 left-3">
+              <span className="badge bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
+                <Star className="w-2.5 h-2.5 fill-current" />
                 {user.subscription.plan_type.toUpperCase()}
               </span>
             </div>
           )}
 
-          {/* Name overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            <h3 className="text-white font-display font-semibold text-lg leading-tight">{user.name}</h3>
-            <div className="flex items-center gap-1 text-white/90 text-sm">
-              <Cake className="w-3.5 h-3.5" />
-              <p>{user.age} yrs</p>
+          {/* Location & Job details overlay */}
+          {user.location && (
+            <div className="absolute top-3 right-3">
+              <span className="badge bg-black/40 backdrop-blur-md text-white text-[10px] font-semibold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                <MapPin className="w-2.5 h-2.5" />
+                {user.location.split(',')[0]}
+              </span>
             </div>
+          )}
+
+          {/* Name overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 pt-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+            <h3 className="text-white font-display font-bold text-base leading-tight flex items-center gap-1.5">
+              {user.name}
+            </h3>
+            <p className="text-white/80 text-xs mt-1">
+              {user.age} yrs • {user.religion?.name || 'Hindu'} • {user.caste?.name || 'Caste'}
+            </p>
           </div>
         </div>
 
         {/* Body */}
         <div className="p-4 space-y-3">
-          {/* Religious badges */}
-          <div className="flex flex-wrap gap-2 text-xs">
-            {user.religion && (
-              <span className="badge-rose">{user.religion.name}</span>
-            )}
-            {user.caste && (
-              <span className="badge bg-purple-100 text-purple-700">{user.caste.name}</span>
-            )}
-            {user.gender && (
-              <span className="badge bg-blue-100 text-blue-700 capitalize">{user.gender}</span>
-            )}
-          </div>
-
-          {/* Main info */}
-          <div className="space-y-1.5">
-            {user.location && (
-              <div className="flex items-center gap-2 text-gray-500 text-sm">
-                <MapPin className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
-                <span className="truncate">{user.location}</span>
-              </div>
-            )}
+          {/* Main info tags */}
+          <div className="space-y-1.5 text-xs">
             {user.job && (
-              <div className="flex items-center gap-2 text-gray-500 text-sm">
-                <Briefcase className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
-                <span className="truncate">{user.job}</span>
+              <div className="flex items-center gap-2 text-gray-600">
+                <Briefcase className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+                <span className="truncate font-medium">{user.job}</span>
               </div>
             )}
             {user.salary && (
-              <div className="flex items-center gap-2 text-gray-500 text-sm">
-                <DollarSign className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
-                <span className="truncate">{user.salary}</span>
+              <div className="flex items-center gap-2 text-gray-600">
+                <DollarSign className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+                <span className="truncate font-medium">{user.salary}</span>
               </div>
             )}
           </div>
 
           {/* Bio preview */}
           {user.bio && (
-            <div className="text-xs text-gray-600 line-clamp-2 pt-1 border-t border-gray-100">
-              {user.bio}
+            <div className="text-[11px] text-gray-400 italic line-clamp-1 border-t border-gray-50 pt-2">
+              "{user.bio}"
             </div>
           )}
 
-          {/* Buttons */}
-          <div className="flex gap-2 pt-2">
+          {/* Mobile Buttons */}
+          <div className="flex gap-2 pt-1">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleInterest();
               }}
               disabled={sending || liked}
-              className="flex-1 bg-rose-600 text-white py-2 rounded-lg text-xs font-medium hover:bg-rose-700 transition-colors flex items-center justify-center gap-1 disabled:opacity-60"
+              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                liked 
+                  ? 'bg-rose-50 text-rose-600 border border-rose-100' 
+                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm hover:shadow-rose-100'
+              } disabled:opacity-80`}
             >
               <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-current' : ''}`} />
-              {sending ? 'Sending...' : liked ? 'Liked' : 'Interest'}
+              {sending ? '...' : liked ? 'Connected' : 'Connect'}
             </button>
+            
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                // Navigate to profile detail for contact viewing (premium check happens there)
                 onClick?.();
               }}
-              className="flex-1 bg-gray-900 text-white py-2 rounded-lg text-xs font-medium hover:bg-gray-700 transition-colors flex items-center justify-center gap-1"
+              className="flex-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1"
             >
-              <Lock className="w-3.5 h-3.5" />
-              Contact
+              View Info
             </button>
           </div>
         </div>

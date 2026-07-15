@@ -1,13 +1,8 @@
 // app/(dashboard)/layout.tsx
-import Navbar from '@/components/ui/Navbar';
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-cream-50">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+    <div className="flex-1 flex flex-col p-4 md:p-0">
+      {children}
     </div>
   );
 }

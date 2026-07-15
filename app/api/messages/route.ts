@@ -2,8 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Op } from 'sequelize';
 import { connectDB } from '@/lib/db';
-import { MessageModel, UserModel } from '@/models';
+import { MessageModel, UserModel, InterestModel } from '@/models';
 import { authenticateRequest } from '@/utils/auth';
+import { createMessageNotification } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,11 +55,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if chat is unlocked (mutual interest) between sender and receiver
+    const senderId = payload.userId;
+    const receiverIdParsed = parseInt(receiver_id);
+
+    const sentInterest = await InterestModel.findOne({
+      where: { sender_id: senderId, receiver_id: receiverIdParsed },
+    });
+    const receivedInterest = await InterestModel.findOne({
+      where: { sender_id: receiverIdParsed, receiver_id: senderId },
+    });
+
+    const hasAccepted = (sentInterest?.status === 'accepted') || (receivedInterest?.status === 'accepted');
+    const hasMutualActive = (sentInterest && sentInterest.status !== 'rejected') && 
+                            (receivedInterest && receivedInterest.status !== 'rejected');
+
+    if (!hasAccepted && !hasMutualActive) {
+      return NextResponse.json(
+        { success: false, error: 'Chat is locked. Both profiles must express interest in each other to unlock chat.' },
+        { status: 403 }
+      );
+    }
+
     const message = await MessageModel.create({
       sender_id: payload.userId,
-      receiver_id: parseInt(receiver_id),
+      receiver_id: receiverIdParsed,
       content: content.trim(),
     });
+
+    // Send notification to the receiver
+    const sender = await UserModel.findByPk(payload.userId, {
+      attributes: ['id', 'name'],
+    });
+
+    if (sender) {
+      try {
+        await createMessageNotification(
+          receiverIdParsed,
+          sender.name,
+          payload.userId,
+          message.id,
+          message.content
+        );
+      } catch (notifError) {
+        console.error('Failed to create message notification:', notifError);
+      }
+    }
 
     return NextResponse.json(
       {

@@ -266,7 +266,7 @@ export default function HomePage() {
             <h4 className="text-white font-semibold mb-4 text-sm">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/search" className="hover:text-rose-400 transition-colors">Find Matches</Link></li>
-              <li><Link href="/plans" className="hover:text-rose-400 transition-colors">Subscription Plans</Link></li>
+              <li><Link href="/subscription" className="hover:text-rose-400 transition-colors">Subscription Plans</Link></li>
               <li><Link href="/signup" className="hover:text-rose-400 transition-colors">Register Free</Link></li>
               <li><Link href="/login" className="hover:text-rose-400 transition-colors">Login</Link></li>
             </ul>

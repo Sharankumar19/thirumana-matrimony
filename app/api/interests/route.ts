@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { InterestModel, UserModel } from '@/models';
 import { authenticateRequest } from '@/utils/auth';
-import { createInterestNotification } from '@/lib/notifications';
+import { createInterestNotification, createInterestAcceptedNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,32 +57,73 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Interest already sent' }, { status: 409 });
     }
 
-    const interest = await InterestModel.create({
-      sender_id: payload.userId,
-      receiver_id,
-      status: 'pending',
+    // Check if the opposite user has already sent an interest to us
+    const opposite = await InterestModel.findOne({
+      where: { sender_id: receiver_id, receiver_id: payload.userId },
     });
 
+    let interest;
     const sender = await UserModel.findByPk(payload.userId, {
       attributes: ['id', 'name'],
     });
+    const receiver = await UserModel.findByPk(receiver_id, {
+      attributes: ['id', 'name'],
+    });
 
-    if (sender) {
-      try {
-        await createInterestNotification(
-          receiver_id,
-          sender.name,
-          payload.userId,
-          interest.id
-        );
-      } catch (notifError) {
-        console.error('Failed to create notification:', notifError);
+    if (opposite && opposite.status !== 'rejected') {
+      // It's a match! Both gave interest. Mark both as accepted.
+      await opposite.update({ status: 'accepted' });
+
+      interest = await InterestModel.create({
+        sender_id: payload.userId,
+        receiver_id,
+        status: 'accepted',
+      });
+
+      // Send Match Found notifications to BOTH parties
+      if (sender && receiver) {
+        try {
+          await createInterestAcceptedNotification(
+            receiver_id,
+            sender.name,
+            payload.userId,
+            interest.id
+          );
+          await createInterestAcceptedNotification(
+            payload.userId,
+            receiver.name,
+            receiver_id,
+            opposite.id
+          );
+        } catch (notifError) {
+          console.error('Failed to create mutual match notifications:', notifError);
+        }
+      }
+    } else {
+      // Normal flow
+      interest = await InterestModel.create({
+        sender_id: payload.userId,
+        receiver_id,
+        status: 'pending',
+      });
+
+      if (sender) {
+        try {
+          await createInterestNotification(
+            receiver_id,
+            sender.name,
+            payload.userId,
+            interest.id
+          );
+        } catch (notifError) {
+          console.error('Failed to create interest notification:', notifError);
+        }
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Interest sent successfully',
+      message: opposite && opposite.status !== 'rejected' ? 'Mutual match found! Chat unlocked.' : 'Interest sent successfully',
       data: interest,
     }, { status: 201 });
   } catch (error) {
@@ -111,6 +152,39 @@ export async function PUT(request: NextRequest) {
     }
 
     await interest.update({ status });
+
+    if (status === 'accepted') {
+      // Find or create opposite interest to also mark it accepted
+      let oppositeInterest = await InterestModel.findOne({
+        where: { sender_id: payload.userId, receiver_id: interest.sender_id },
+      });
+      if (!oppositeInterest) {
+        oppositeInterest = await InterestModel.create({
+          sender_id: payload.userId,
+          receiver_id: interest.sender_id,
+          status: 'accepted',
+        });
+      } else if (oppositeInterest.status !== 'accepted') {
+        await oppositeInterest.update({ status: 'accepted' });
+      }
+
+      // Send Match Found notification to the sender (interest.sender_id) who initiated the request
+      const receiver = await UserModel.findByPk(payload.userId, {
+        attributes: ['id', 'name'],
+      });
+      if (receiver) {
+        try {
+          await createInterestAcceptedNotification(
+            interest.sender_id,
+            receiver.name,
+            payload.userId,
+            interest.id
+          );
+        } catch (notifError) {
+          console.error('Failed to create match acceptance notification:', notifError);
+        }
+      }
+    }
 
     return NextResponse.json({
       success: true,

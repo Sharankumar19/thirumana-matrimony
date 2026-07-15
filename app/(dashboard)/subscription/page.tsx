@@ -190,7 +190,7 @@ export default function SubscriptionPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-gray-500 text-lg max-w-xl mx-auto">
-            Browse for free. Upgrade to Premium for ₹199 to unlock complete contact details and connect directly.
+            Browse for free. Upgrade to Premium for ₹2999 to unlock complete contact details and connect directly.
           </p>
         </div>
 
@@ -278,7 +278,7 @@ export default function SubscriptionPage() {
               </div>
               <h3 className="text-2xl font-display font-bold text-gray-900">Premium</h3>
               <div className="mt-3">
-                <span className="text-4xl font-extrabold text-gray-900">₹199</span>
+                <span className="text-4xl font-extrabold text-gray-900">₹2999</span>
                 <span className="text-gray-500 text-sm ml-1">/ month</span>
               </div>
             </div>
@@ -312,7 +312,7 @@ export default function SubscriptionPage() {
               ) : (
                 <>
                   <Crown className="w-4 h-4" />
-                  Upgrade to Premium — ₹199
+                  Upgrade to Premium — ₹2999
                 </>
               )}
             </button>
@@ -370,7 +370,7 @@ export default function SubscriptionPage() {
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Amount</p>
-                <p className="text-2xl font-extrabold text-rose-600">₹199.00</p>
+                <p className="text-2xl font-extrabold text-rose-600">₹2999.00</p>
               </div>
             </div>
 

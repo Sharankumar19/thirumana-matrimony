@@ -1,8 +1,9 @@
 'use client';
 // app/(dashboard)/matches/page.tsx
 import { useEffect, useState } from 'react';
-import { Heart, Check, X, UserCheck, Send } from 'lucide-react';
+import { Heart, Check, X, UserCheck, Send, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import MessageModal from '@/components/profile/MessageModal';
 
 interface InterestUser {
   id: number;
@@ -25,6 +26,21 @@ export default function MatchesPage() {
   const [tab, setTab] = useState<'received' | 'sent'>('received');
   const [interests, setInterests] = useState<Interest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [selectedUser, setSelectedUser] = useState<InterestUser | null>(null);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserId(decoded.userId);
+      } catch (err) {
+        console.error('Failed to decode token:', err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchInterests();
@@ -140,13 +156,39 @@ export default function MatchesPage() {
                   </div>
                 )}
 
-                {tab === 'received' && interest.status === 'accepted' && (
-                  <UserCheck className="w-5 h-5 text-green-500 flex-shrink-0" />
+                {interest.status === 'accepted' && (
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {tab === 'received' && (
+                      <UserCheck className="w-5 h-5 text-green-500" />
+                    )}
+                    <button
+                      onClick={() => {
+                        setSelectedUser(person);
+                        setShowMessageModal(true);
+                      }}
+                      className="w-9 h-9 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center hover:bg-rose-100 transition-colors"
+                      title="Chat Now"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
+                  </div>
                 )}
               </div>
             );
           })}
         </div>
+      )}
+
+      {/* Message Modal */}
+      {showMessageModal && selectedUser && currentUserId && (
+        <MessageModal
+          targetUser={selectedUser as any}
+          currentUserId={currentUserId}
+          onClose={() => {
+            setShowMessageModal(false);
+            setSelectedUser(null);
+          }}
+        />
       )}
     </div>
   );

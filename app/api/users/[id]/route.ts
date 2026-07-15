@@ -1,9 +1,10 @@
 // app/api/users/[id]/route.ts — Fetch single user by ID with masking and privacy checks
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { UserModel, Religion, Caste, SubCaste, SubscriptionModel } from '@/models';
+import { UserModel, Religion, Caste, SubCaste, SubscriptionModel, InterestModel } from '@/models';
 import { authenticateRequest } from '@/utils/auth';
 import { maskEmail, maskPhone } from '@/utils/helpers';
+import { Op } from 'sequelize';
 
 export async function GET(
   request: NextRequest,
@@ -40,10 +41,11 @@ export async function GET(
     // Determine viewer access status
     let viewerIsPremium = false;
     let isOwnProfile = false;
+    let viewerId: number | null = null;
 
     try {
       const payload = authenticateRequest(request);
-      const viewerId = payload.userId;
+      viewerId = payload.userId;
       if (viewerId === userId) {
         isOwnProfile = true;
       } else {
@@ -60,6 +62,51 @@ export async function GET(
     }
 
     const userData = user.toJSON() as any;
+
+    // Check interest records and chat lock status
+    let chatUnlocked = false;
+    let interestSentByViewer = false;
+    let interestReceivedByViewer = false;
+    let viewerInterestStatus: 'pending' | 'accepted' | 'rejected' | null = null;
+    let receivedInterestStatus: 'pending' | 'accepted' | 'rejected' | null = null;
+
+    if (viewerId && !isOwnProfile) {
+      const sentInterest = await InterestModel.findOne({
+        where: { sender_id: viewerId, receiver_id: userId },
+      });
+      const receivedInterest = await InterestModel.findOne({
+        where: { sender_id: userId, receiver_id: viewerId },
+      });
+
+      if (sentInterest) {
+        interestSentByViewer = true;
+        viewerInterestStatus = sentInterest.status;
+      }
+
+      if (receivedInterest) {
+        interestReceivedByViewer = true;
+        receivedInterestStatus = receivedInterest.status;
+      }
+
+      // Chat is unlocked if:
+      // 1. Any of the interest requests is explicitly 'accepted'
+      // 2. Both directions have active (non-rejected) interest requests
+      const hasAccepted = (sentInterest?.status === 'accepted') || (receivedInterest?.status === 'accepted');
+      const hasMutualActive = (sentInterest && sentInterest.status !== 'rejected') && 
+                              (receivedInterest && receivedInterest.status !== 'rejected');
+
+      if (hasAccepted || hasMutualActive) {
+        chatUnlocked = true;
+      }
+    } else if (isOwnProfile) {
+      chatUnlocked = true;
+    }
+
+    userData.chat_unlocked = chatUnlocked;
+    userData.interest_sent_by_viewer = interestSentByViewer;
+    userData.interest_received_by_viewer = interestReceivedByViewer;
+    userData.viewer_interest_status = viewerInterestStatus;
+    userData.received_interest_status = receivedInterestStatus;
 
     // 1. Enforce Masking for Contact Info
     if (!isOwnProfile && !viewerIsPremium) {

@@ -69,6 +69,9 @@ export default function ViewProfilePage() {
 
       if (data.success) {
         setUser(data.data);
+        if (data.data.interest_sent_by_viewer) {
+          setLiked(true);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -115,10 +118,11 @@ export default function ViewProfilePage() {
     if (success) {
       setLiked(true);
       toast.success('Interest sent!');
+      fetchUser(); // refetch user data to reload match and chat status
     } else {
       toast.error('Failed to send interest. You may have already expressed interest.');
     }
-  }, [isAuthenticated, id]);
+  }, [isAuthenticated, id, fetchUser]);
 
   useEffect(() => {
     if (isAuthenticated && id) {
@@ -204,15 +208,15 @@ export default function ViewProfilePage() {
     .slice(0, 2);
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
       
       {/* Profile Header */}
-      <div className="card p-8 flex flex-col sm:flex-row gap-8 items-center sm:items-start text-center sm:text-left bg-white border border-gray-100 shadow-sm rounded-3xl relative overflow-hidden">
+      <div className="card p-5 md:p-8 flex flex-col md:flex-row gap-5 md:gap-8 items-center md:items-start text-center md:text-left bg-white border border-gray-100 shadow-sm rounded-3xl relative overflow-hidden">
         {/* Subtle decorative background blur */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-rose-50 rounded-full filter blur-3xl opacity-60 -z-10" />
 
         {/* Avatar */}
-        <div className="w-36 h-36 rounded-3xl overflow-hidden bg-gray-50 border border-gray-200 flex-shrink-0 shadow-sm flex items-center justify-center">
+        <div className="w-32 h-32 md:w-36 md:h-36 rounded-3xl overflow-hidden bg-gray-50 border border-gray-200 flex-shrink-0 shadow-sm flex items-center justify-center mb-1 md:mb-0">
           {user.profile_image ? (
             <img
               src={user.profile_image}
@@ -220,18 +224,18 @@ export default function ViewProfilePage() {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center text-white text-5xl font-black font-display">
+            <div className="w-full h-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center text-white text-4xl md:text-5xl font-black font-display">
               {initials}
             </div>
           )}
         </div>
 
         {/* Info */}
-        <div className="flex-1 space-y-3">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-3">
+        <div className="flex-1 w-full space-y-3">
+          <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-display font-extrabold text-gray-900">{user.name}</h1>
-              <div className="flex items-center gap-2 mt-1 justify-center sm:justify-start">
+              <h1 className="text-2xl md:text-3xl font-display font-extrabold text-gray-900">{user.name}</h1>
+              <div className="flex items-center gap-2 mt-1 justify-center md:justify-start">
                 <Cake className="w-4 h-4 text-rose-500" />
                 <span className="text-gray-600 font-semibold">{user.age} Years Old</span>
               </div>
@@ -244,28 +248,28 @@ export default function ViewProfilePage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 text-xs md:text-sm border-t md:border-t-0 border-gray-150/40 w-full text-center md:text-left">
             {user.location && (
-              <div className="flex items-center justify-center sm:justify-start gap-2.5 text-gray-500">
-                <MapPin className="w-4 h-4 text-rose-500 flex-shrink-0" />
+              <div className="flex items-center justify-center md:justify-start gap-2.5 text-gray-500">
+                <MapPin className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
                 <span className="font-semibold text-gray-700">{user.location}</span>
               </div>
             )}
             {user.gender && (
-              <div className="flex items-center justify-center sm:justify-start gap-2.5 text-gray-500">
-                <Users className="w-4 h-4 text-rose-500 flex-shrink-0" />
+              <div className="flex items-center justify-center md:justify-start gap-2.5 text-gray-500">
+                <Users className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
                 <span className="capitalize font-semibold text-gray-700">{user.gender}</span>
               </div>
             )}
             {user.job && (
-              <div className="flex items-center justify-center sm:justify-start gap-2.5 text-gray-500">
-                <WorkIcon className="w-4 h-4 text-rose-500 flex-shrink-0" />
+              <div className="flex items-center justify-center md:justify-start gap-2.5 text-gray-500">
+                <WorkIcon className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
                 <span className="font-semibold text-gray-700">{user.job}</span>
               </div>
             )}
             {user.salary && (
-              <div className="flex items-center justify-center sm:justify-start gap-2.5 text-gray-500">
-                <DollarSign className="w-4 h-4 text-rose-500 flex-shrink-0" />
+              <div className="flex items-center justify-center md:justify-start gap-2.5 text-gray-500">
+                <DollarSign className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
                 <span className="font-semibold text-gray-700">{user.salary}</span>
               </div>
             )}
@@ -508,20 +512,74 @@ export default function ViewProfilePage() {
         </div>
       </div>
 
+      {/* Premium Chat Lock / Match Status Banner */}
+      {isAuthenticated && currentUserId && currentUserId !== Number(id) && (
+        <div className={`p-4 rounded-2xl border text-center transition-all shadow-sm flex items-center justify-center gap-3 text-sm font-semibold ${
+          user.chat_unlocked
+            ? 'bg-gradient-to-r from-rose-50 to-pink-50 border-rose-100 text-rose-700'
+            : user.interest_sent_by_viewer && !user.interest_received_by_viewer
+            ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-100 text-amber-700'
+            : !user.interest_sent_by_viewer && user.interest_received_by_viewer
+            ? 'bg-gradient-to-r from-pink-50 to-rose-50 border-pink-200 text-rose-700 animate-pulse'
+            : 'bg-gray-50 border-gray-100 text-gray-600'
+        }`}>
+          {user.chat_unlocked ? (
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-rose-500 fill-current animate-pulse" />
+              <span>Match Found! Chat option is unlocked. Start messaging!</span>
+            </div>
+          ) : user.interest_sent_by_viewer && !user.interest_received_by_viewer ? (
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-amber-500" />
+              <span>Interest sent! Waiting for {user.name} to express interest back to unlock chat.</span>
+            </div>
+          ) : !user.interest_sent_by_viewer && user.interest_received_by_viewer ? (
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-rose-500 fill-current animate-bounce" />
+              <span>{user.name} expressed interest in you! Like back to unlock chat.</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-gray-400" />
+              <span>Chat is locked. Both of you must express interest to start chatting.</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Action Footer Sticky */}
-      <div className="flex gap-4 sticky bottom-6 z-40 bg-white/80 backdrop-blur-md p-4 border border-gray-100 rounded-3xl shadow-lg">
-        <button
-          onClick={handleInterest}
-          disabled={sending || liked}
-          className={`flex-1 font-bold text-sm py-4.5 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm border ${
-            liked 
-              ? 'bg-rose-100 text-rose-700 border-rose-200' 
-              : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 hover:shadow-rose-200'
-          } disabled:opacity-65`}
-        >
-          <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
-          {sending ? 'Sending...' : liked ? 'Interest Sent' : 'Express Interest'}
-        </button>
+      <div className="flex gap-4 sticky bottom-6 z-40 bg-white/85 backdrop-blur-md p-4 border border-gray-100 rounded-3xl shadow-lg">
+        {user.chat_unlocked ? (
+          <button
+            disabled={true}
+            className="flex-1 font-bold text-sm py-4 rounded-2xl flex items-center justify-center gap-2 border bg-emerald-50 text-emerald-700 border-emerald-200"
+          >
+            <Check className="w-4 h-4" />
+            Matched Connection
+          </button>
+        ) : !user.interest_sent_by_viewer && user.interest_received_by_viewer ? (
+          <button
+            onClick={handleInterest}
+            disabled={sending}
+            className="flex-1 font-bold text-sm py-4 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm border bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 animate-pulse"
+          >
+            <Heart className="w-4 h-4 fill-current" />
+            {sending ? 'Accepting...' : 'Like Back to Chat'}
+          </button>
+        ) : (
+          <button
+            onClick={handleInterest}
+            disabled={sending || liked}
+            className={`flex-1 font-bold text-sm py-4 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm border ${
+              liked 
+                ? 'bg-rose-50 text-rose-500 border-rose-100' 
+                : 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 hover:shadow-rose-200'
+            } disabled:opacity-65`}
+          >
+            <Heart className={`w-4 h-4 ${liked ? 'fill-current' : ''}`} />
+            {sending ? 'Sending...' : liked ? 'Interest Sent' : 'Express Interest'}
+          </button>
+        )}
 
         <button
           onClick={() => {
@@ -529,12 +587,30 @@ export default function ViewProfilePage() {
               toast.error('Please log in to send messages');
               return;
             }
+            if (!user.chat_unlocked) {
+              if (!user.interest_sent_by_viewer && !user.interest_received_by_viewer) {
+                toast.error(`Chat is locked. Click 'Express Interest' first to connect with ${user.name}!`);
+              } else if (user.interest_sent_by_viewer && !user.interest_received_by_viewer) {
+                toast.error(`Awaiting response from ${user.name} to unlock chat.`);
+              } else if (!user.interest_sent_by_viewer && user.interest_received_by_viewer) {
+                toast.error(`Click 'Like Back to Chat' first to match with ${user.name} and unlock chat!`);
+              }
+              return;
+            }
             setShowMessageModal(true);
           }}
-          className="flex-1 bg-gray-950 hover:bg-gray-800 text-white font-bold text-sm py-4 rounded-2xl hover:shadow-lg transition-all flex items-center justify-center gap-2 border border-gray-950"
+          className={`flex-1 font-bold text-sm py-4 transition-all flex items-center justify-center gap-2 border ${
+            user.chat_unlocked
+              ? 'bg-gray-950 hover:bg-gray-800 text-white border-gray-950 hover:shadow-lg'
+              : 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+          }`}
         >
-          <MessageCircle className="w-4 h-4" />
-          Send Message
+          {user.chat_unlocked ? (
+            <MessageCircle className="w-4 h-4" />
+          ) : (
+            <Lock className="w-4 h-4" />
+          )}
+          {user.chat_unlocked ? 'Chat Now' : 'Chat Locked'}
         </button>
       </div>
 
