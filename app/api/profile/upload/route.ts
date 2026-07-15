@@ -1,7 +1,7 @@
 // app/api/profile/upload/route.ts — Profile image upload
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
-import { UserModel, ProfileImageModel } from '@/models';
+import { UserModel, ProfileImageModel, syncModels } from '@/models';
 import { authenticateRequest } from '@/utils/auth';
 
 export async function GET(request: NextRequest) {
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
+    await syncModels();
     
     // Handle authentication separately
     let payload;

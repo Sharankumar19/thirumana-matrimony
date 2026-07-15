@@ -1494,6 +1494,7 @@ export default function ProfilePage() {
   const [viewersList, setViewersList] = useState<any[]>([]);
   const [loadingViewers, setLoadingViewers] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -1847,14 +1848,22 @@ export default function ProfilePage() {
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const formData = new FormData();
-    formData.append('profile_image', file);
-    const result = await dispatch(uploadProfileImage(formData));
-    if (uploadProfileImage.fulfilled.match(result)) {
-      toast.success('Profile photo updated!');
-      dispatch(fetchProfile());
-    } else {
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('profile_image', file);
+      const result = await dispatch(uploadProfileImage(formData));
+      if (uploadProfileImage.fulfilled.match(result)) {
+        toast.success('Profile photo updated!');
+        dispatch(fetchProfile());
+      } else {
+        toast.error('Upload failed');
+      }
+    } catch (err) {
+      console.error(err);
       toast.error('Upload failed');
+    } finally {
+      setUploadingImage(false);
     }
   }
 
@@ -1889,7 +1898,7 @@ export default function ProfilePage() {
         <div className="px-4 md:px-8 pb-5 md:pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 -mt-12 sm:-mt-14 md:-mt-16">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-3 sm:gap-4 md:gap-6 text-center md:text-left w-full md:w-auto min-w-0">
             <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex-shrink-0">
-              <div className="w-full h-full rounded-2xl md:rounded-3xl border-4 border-white shadow-xl overflow-hidden bg-white flex items-center justify-center">
+              <div className="w-full h-full rounded-2xl md:rounded-3xl border-4 border-white shadow-xl overflow-hidden bg-white flex items-center justify-center relative">
                 {profile?.profile_image ? (
                   <img src={profile.profile_image} alt={profile.name} className="w-full h-full object-cover" />
                 ) : (
@@ -1897,12 +1906,22 @@ export default function ProfilePage() {
                     {profile?.name?.[0]?.toUpperCase()}
                   </span>
                 )}
+                {uploadingImage && (
+                  <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center z-10">
+                    <Loader2 className="w-6 h-6 md:w-8 md:h-8 text-white animate-spin" />
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-8 h-8 md:w-9 md:h-9 bg-rose-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg hover:bg-rose-700 transition-colors border-2 border-white"
+                disabled={uploadingImage}
+                className={`absolute -bottom-1 -right-1 w-8 h-8 md:w-9 md:h-9 bg-rose-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg hover:bg-rose-700 transition-colors border-2 border-white ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <Camera className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                {uploadingImage ? (
+                  <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-white animate-spin" />
+                ) : (
+                  <Camera className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                )}
               </button>
               <input ref={fileRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
             </div>
