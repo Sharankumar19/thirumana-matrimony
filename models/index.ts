@@ -277,7 +277,7 @@ UserModel.init(
     job: { type: DataTypes.STRING(150), allowNull: true },
     salary: { type: DataTypes.STRING(50), allowNull: true },
     bio: { type: DataTypes.TEXT, allowNull: true },
-    profile_image: { type: DataTypes.STRING(500), allowNull: true },
+    profile_image: { type: DataTypes.TEXT('long'), allowNull: true },
     is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
 
     // Basic Information
@@ -613,7 +613,7 @@ ProfileImageModel.init(
       onDelete: 'CASCADE',
     },
     image_url: {
-      type: DataTypes.STRING(500),
+      type: DataTypes.TEXT('long'),
       allowNull: false,
     },
     is_primary: {
@@ -709,19 +709,20 @@ UserModel.hasMany(PaymentModel, { foreignKey: 'user_id', as: 'payments' });
 PaymentModel.belongsTo(UserModel, { foreignKey: 'user_id', as: 'user' });
 
 export async function syncModels(force = false): Promise<void> {
-  await Religion.sync({ force });
-  await Caste.sync({ force });
-  await SubCaste.sync({ force });
-  await UserModel.sync({ force });
-  await SubscriptionModel.sync({ force });
-  await ContactViewModel.sync({ force });
-  await InterestModel.sync({ force });
-  await ProfileViewModel.sync({ force });
-  await MessageModel.sync({ force });
-  await ProfileImageModel.sync({ force });
-  await NotificationModel.sync({ force });
-  await PaymentModel.sync({ force });
-  console.log('✅ All models synced');
+  const alter = true;
+  await Religion.sync({ force, alter });
+  await Caste.sync({ force, alter });
+  await SubCaste.sync({ force, alter });
+  await UserModel.sync({ force, alter });
+  await SubscriptionModel.sync({ force, alter });
+  await ContactViewModel.sync({ force, alter });
+  await InterestModel.sync({ force, alter });
+  await ProfileViewModel.sync({ force, alter });
+  await MessageModel.sync({ force, alter });
+  await ProfileImageModel.sync({ force, alter });
+  await NotificationModel.sync({ force, alter });
+  await PaymentModel.sync({ force, alter });
+  console.log('✅ All models synced with alter:true');
 }
 
 export default {
